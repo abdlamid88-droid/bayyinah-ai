@@ -1,0 +1,10 @@
+db_data
+pgdata
+.git
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.venv
+venv
+env

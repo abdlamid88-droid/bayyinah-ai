@@ -1,0 +1,272 @@
+{
+  "summary": {
+    "cache_miss": {
+      "count": 11,
+      "avg_ms": 1017.3,
+      "min_ms": 407.25,
+      "max_ms": 3697.54,
+      "p95_ms": 3697.54
+    },
+    "cache_hit": {
+      "count": 17,
+      "avg_ms": 17.29,
+      "min_ms": 7.94,
+      "max_ms": 55.64,
+      "p95_ms": 55.64
+    },
+    "performance_gain": {
+      "speedup_factor": 58.85,
+      "latency_reduction_percent": 98.3,
+      "sub_50ms_sla_met": false
+    },
+    "normalization_invariance": {
+      "total_tested": 6,
+      "all_hit_cache": true
+    },
+    "cache_stats": {
+      "size": 11,
+      "maxsize": 10000,
+      "ttl_seconds": 3600,
+      "hits": 17,
+      "misses": 11,
+      "total_lookups": 28,
+      "hit_ratio_percent": 60.71
+    }
+  },
+  "phase1_miss_details": [
+    {
+      "id": 1,
+      "query": "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+      "category": "Direct Match",
+      "latency_ms": 3697.54,
+      "cached": false,
+      "status": "verified",
+      "passed": true
+    },
+    {
+      "id": 2,
+      "query": "المسلم من سلم المسلمون من لسانه ويده",
+      "category": "Direct Match",
+      "latency_ms": 745.1,
+      "cached": false,
+      "status": "verified",
+      "passed": true
+    },
+    {
+      "id": 3,
+      "query": "من سلك طريقا يلتمس فيه علما سهل الله له به طريقا إلى الجنة",
+      "category": "Direct Match",
+      "latency_ms": 591.53,
+      "cached": false,
+      "status": "verified",
+      "passed": true
+    },
+    {
+      "id": 4,
+      "query": "بني الإسلام على خمس شهادة أن لا إله إلا الله",
+      "category": "Direct Match",
+      "latency_ms": 1138.93,
+      "cached": false,
+      "status": "verified",
+      "passed": true
+    },
+    {
+      "id": 5,
+      "query": "لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه",
+      "category": "Direct Match",
+      "latency_ms": 1105.75,
+      "cached": false,
+      "status": "verified",
+      "passed": true
+    },
+    {
+      "id": 6,
+      "query": "صلاح الأعمال ومراتب قبولها مرتبط بنوايا أصحابها",
+      "category": "Semantic Paraphrase",
+      "latency_ms": 1031.83,
+      "cached": false,
+      "status": "verified",
+      "passed": true
+    },
+    {
+      "id": 7,
+      "query": "كف الأذى واللسان عن الآخرين علامة صدق الإيمان",
+      "category": "Semantic Paraphrase",
+      "latency_ms": 532.14,
+      "cached": false,
+      "status": "verified",
+      "passed": true
+    },
+    {
+      "id": 8,
+      "query": "السعي والاجتهاد في تحصيل العلم ييسر الدخول إلى الجنة",
+      "category": "Semantic Paraphrase",
+      "latency_ms": 407.25,
+      "cached": false,
+      "status": "verified",
+      "passed": true
+    },
+    {
+      "id": 9,
+      "query": "المعدة بيت الداء والحمية رأس كل دواء",
+      "category": "Smart Refusal",
+      "latency_ms": 412.9,
+      "cached": false,
+      "status": "refused",
+      "passed": true
+    },
+    {
+      "id": 10,
+      "query": "اطلبوا العلم ولو في الصين",
+      "category": "Smart Refusal",
+      "latency_ms": 452.37,
+      "cached": false,
+      "status": "refused",
+      "passed": true
+    },
+    {
+      "id": 11,
+      "query": "حب الوطن من الإيمان",
+      "category": "Smart Refusal",
+      "latency_ms": 1074.92,
+      "cached": false,
+      "status": "refused",
+      "passed": true
+    }
+  ],
+  "phase2_hit_exact_details": [
+    {
+      "id": 1,
+      "query": "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+      "latency_ms": 24.46,
+      "cached": true,
+      "status": "verified"
+    },
+    {
+      "id": 2,
+      "query": "المسلم من سلم المسلمون من لسانه ويده",
+      "latency_ms": 55.64,
+      "cached": true,
+      "status": "verified"
+    },
+    {
+      "id": 3,
+      "query": "من سلك طريقا يلتمس فيه علما سهل الله له به طريقا إلى الجنة",
+      "latency_ms": 33.28,
+      "cached": true,
+      "status": "verified"
+    },
+    {
+      "id": 4,
+      "query": "بني الإسلام على خمس شهادة أن لا إله إلا الله",
+      "latency_ms": 14.97,
+      "cached": true,
+      "status": "verified"
+    },
+    {
+      "id": 5,
+      "query": "لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه",
+      "latency_ms": 9.78,
+      "cached": true,
+      "status": "verified"
+    },
+    {
+      "id": 6,
+      "query": "صلاح الأعمال ومراتب قبولها مرتبط بنوايا أصحابها",
+      "latency_ms": 19.05,
+      "cached": true,
+      "status": "verified"
+    },
+    {
+      "id": 7,
+      "query": "كف الأذى واللسان عن الآخرين علامة صدق الإيمان",
+      "latency_ms": 14.7,
+      "cached": true,
+      "status": "verified"
+    },
+    {
+      "id": 8,
+      "query": "السعي والاجتهاد في تحصيل العلم ييسر الدخول إلى الجنة",
+      "latency_ms": 26.53,
+      "cached": true,
+      "status": "verified"
+    },
+    {
+      "id": 9,
+      "query": "المعدة بيت الداء والحمية رأس كل دواء",
+      "latency_ms": 22.39,
+      "cached": true,
+      "status": "refused"
+    },
+    {
+      "id": 10,
+      "query": "اطلبوا العلم ولو في الصين",
+      "latency_ms": 10.44,
+      "cached": true,
+      "status": "refused"
+    },
+    {
+      "id": 11,
+      "query": "حب الوطن من الإيمان",
+      "latency_ms": 8.58,
+      "cached": true,
+      "status": "refused"
+    }
+  ],
+  "phase3_normalization_details": [
+    {
+      "id": 1,
+      "desc": "Tashkeel + Tatweel addition",
+      "original": "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+      "variant": "إِنَّـــمَا الأَعْـــمَالُ بِالنِّيَّـــاتِ وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى.",
+      "latency_ms": 9.45,
+      "cached": true,
+      "status": "verified"
+    },
+    {
+      "id": 2,
+      "desc": "Alef normalization (Bare Alef) + stripped spacing",
+      "original": "المسلم من سلم المسلمون من لسانه ويده",
+      "variant": "المسلم   من سلم المسلمون من لسانه ويده  ",
+      "latency_ms": 11.79,
+      "cached": true,
+      "status": "verified"
+    },
+    {
+      "id": 3,
+      "desc": "Tanween and diacritics injection",
+      "original": "من سلك طريقا يلتمس فيه علما سهل الله له به طريقا إلى الجنة",
+      "variant": "مَنْ سَلَكَ طَرِيقاً يَلْتَمِسُ فِيهِ عِلْماً سَهَّلَ اللهُ لَهُ بِهِ طَرِيقاً إِلَى الجَنَّةِ",
+      "latency_ms": 8.64,
+      "cached": true,
+      "status": "verified"
+    },
+    {
+      "id": 4,
+      "desc": "Alef variants & punctuation",
+      "original": "بني الإسلام على خمس شهادة أن لا إله إلا الله",
+      "variant": "«بني الاسلام علي خمس: شهاده ان لا اله الا الله»",
+      "latency_ms": 8.26,
+      "cached": true,
+      "status": "verified"
+    },
+    {
+      "id": 5,
+      "desc": "Taa Marbuta / Haa variation",
+      "original": "المعدة بيت الداء والحمية رأس كل دواء",
+      "variant": "المعده بيت الداء والحميه راس كل دواء",
+      "latency_ms": 7.97,
+      "cached": true,
+      "status": "refused"
+    },
+    {
+      "id": 6,
+      "desc": "Tatweel + quotes",
+      "original": "حب الوطن من الإيمان",
+      "variant": "«حـــب الـــوطـــن مـــن الإيـــمـــان»",
+      "latency_ms": 7.94,
+      "cached": true,
+      "status": "refused"
+    }
+  ]
+}

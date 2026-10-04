@@ -1,0 +1,162 @@
+{
+  "summary": {
+    "total_queries": 15,
+    "passed": 15,
+    "failed": 0,
+    "accuracy_percentage": 100.0,
+    "avg_latency_ms": 3183.89,
+    "p95_latency_ms": 13938.26
+  },
+  "details": [
+    {
+      "id": 1,
+      "category": "Direct Match",
+      "expected": "verified",
+      "query": "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+      "actual": "verified",
+      "passed": true,
+      "similarity": 0.8647,
+      "latency_ms": 5156.87
+    },
+    {
+      "id": 2,
+      "category": "Direct Match",
+      "expected": "verified",
+      "query": "المسلم من سلم المسلمون من لسانه ويده",
+      "actual": "verified",
+      "passed": true,
+      "similarity": 0.8778,
+      "latency_ms": 5038.08
+    },
+    {
+      "id": 3,
+      "category": "Direct Match",
+      "expected": "verified",
+      "query": "من سلك طريقا يلتمس فيه علما سهل الله له به طريقا إلى الجنة",
+      "actual": "verified",
+      "passed": true,
+      "similarity": 0.9901,
+      "latency_ms": 660.28
+    },
+    {
+      "id": 4,
+      "category": "Direct Match",
+      "expected": "verified",
+      "query": "بني الإسلام على خمس شهادة أن لا إله إلا الله",
+      "actual": "verified",
+      "passed": true,
+      "similarity": 0.8812,
+      "latency_ms": 948.22
+    },
+    {
+      "id": 5,
+      "category": "Direct Match",
+      "expected": "verified",
+      "query": "لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه",
+      "actual": "verified",
+      "passed": true,
+      "similarity": 0.9915,
+      "latency_ms": 465.6
+    },
+    {
+      "id": 6,
+      "category": "Semantic Paraphrase",
+      "expected": "verified",
+      "query": "صلاح الأعمال ومراتب قبولها مرتبط بنوايا أصحابها",
+      "actual": "verified",
+      "passed": true,
+      "similarity": 0.8013,
+      "latency_ms": 13938.26
+    },
+    {
+      "id": 7,
+      "category": "Semantic Paraphrase",
+      "expected": "verified",
+      "query": "كف الأذى واللسان عن الآخرين علامة صدق الإيمان",
+      "actual": "verified",
+      "passed": true,
+      "similarity": 0.7509,
+      "latency_ms": 70.57
+    },
+    {
+      "id": 8,
+      "category": "Semantic Paraphrase",
+      "expected": "verified",
+      "query": "السعي والاجتهاد في تحصيل العلم ييسر الدخول إلى الجنة",
+      "actual": "verified",
+      "passed": true,
+      "similarity": 0.834,
+      "latency_ms": 6079.96
+    },
+    {
+      "id": 9,
+      "category": "Semantic Paraphrase",
+      "expected": "verified",
+      "query": "أركان وقواعد دين الإسلام خمسة أمور أساسية",
+      "actual": "verified",
+      "passed": true,
+      "similarity": 0.8068,
+      "latency_ms": 5417.74
+    },
+    {
+      "id": 10,
+      "category": "Semantic Paraphrase",
+      "expected": "verified",
+      "query": "محبة الخير والنفع للناس من كمال إيمان المسلم",
+      "actual": "verified",
+      "passed": true,
+      "similarity": 0.7402,
+      "latency_ms": 6290.95
+    },
+    {
+      "id": 11,
+      "category": "Smart Refusal",
+      "expected": "refused",
+      "query": "المعدة بيت الداء والحمية رأس كل دواء",
+      "actual": "refused",
+      "passed": true,
+      "similarity": 0.0,
+      "latency_ms": 582.21
+    },
+    {
+      "id": 12,
+      "category": "Smart Refusal",
+      "expected": "refused",
+      "query": "اطلبوا العلم ولو في الصين",
+      "actual": "refused",
+      "passed": true,
+      "similarity": 0.0,
+      "latency_ms": 61.46
+    },
+    {
+      "id": 13,
+      "category": "Smart Refusal",
+      "expected": "refused",
+      "query": "حب الوطن من الإيمان",
+      "actual": "refused",
+      "passed": true,
+      "similarity": 0.0,
+      "latency_ms": 532.02
+    },
+    {
+      "id": 14,
+      "category": "Smart Refusal",
+      "expected": "refused",
+      "query": "اختلاف أمتي رحمة واسعة",
+      "actual": "refused",
+      "passed": true,
+      "similarity": 0.0,
+      "latency_ms": 1131.34
+    },
+    {
+      "id": 15,
+      "category": "Smart Refusal",
+      "expected": "refused",
+      "query": "نحن قوم لا نأكل حتى نجوع وإذا أكلنا لا نشبع",
+      "actual": "refused",
+      "passed": true,
+      "similarity": 0.0,
+      "latency_ms": 1384.74
+    }
+  ]
+}

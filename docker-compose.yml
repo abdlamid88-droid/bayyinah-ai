@@ -1,0 +1,66 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: bayyinah_db
+    environment:
+      POSTGRES_DB: bayyinah_db
+      POSTGRES_USER: bayyinah_user
+      POSTGRES_PASSWORD: bayyinah_secure_pass
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - bayyinah_net
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: bayyinah_backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+    ports:
+      - "8080:8080"
+    environment:
+      POSTGRES_DB: bayyinah_db
+      POSTGRES_USER: bayyinah_user
+      POSTGRES_PASSWORD: bayyinah_secure_pass
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: 5432
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    volumes:
+      - ./app:/app/app
+      - ./backend:/app/backend
+      - ./data:/app/data
+      - ./reports:/app/reports
+      - ./scripts:/app/scripts
+    depends_on:
+      - db
+    networks:
+      - bayyinah_net
+
+  frontend:
+    image: python:3.11-slim
+    container_name: bayyinah_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "8504:8501"
+    environment:
+      - BACKEND_URL=http://backend:8080
+      - API_URL=http://backend:8080/api/v1/verify
+    command: >
+      bash -c "pip install --no-cache-dir streamlit requests &&
+               streamlit run app.py --server.port=8501 --server.address=0.0.0.0"
+    depends_on:
+      - backend
+    networks:
+      - bayyinah_net
+
+volumes:
+  pgdata:
+
+networks:
+  bayyinah_net:
+    driver: bridge
