@@ -19,3 +19,4 @@ ENV/
 # Cloudflare / Tunnel temp files
 *.deb
 *.log
+db_data/
