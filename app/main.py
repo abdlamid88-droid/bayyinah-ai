@@ -17,7 +17,14 @@ try:
 except ImportError:
     from backend.app.cache import verification_cache
 
-app = FastAPI(title="Bayyinah Engine API", version="0.3.5")
+try:
+    from app.services.retrieval import retrieve_candidate_hadiths
+    from app.services.arbiter import arbitrate_multi_tier, REFUSAL_MESSAGE
+except ImportError:
+    from backend.app.services.retrieval import retrieve_candidate_hadiths
+    from backend.app.services.arbiter import arbitrate_multi_tier, REFUSAL_MESSAGE
+
+app = FastAPI(title="Bayyinah Engine API", version="0.4.0")
 
 DB_NAME = os.getenv("POSTGRES_DB", "bayyinah_db")
 DB_USER = os.getenv("POSTGRES_USER", "bayyinah_user")
@@ -87,16 +94,16 @@ def clean_text(text: str) -> str:
     text = re.sub(r"[\.,;:!?\(\)\[\]\{\}\'\"«»ـ،؟؛—\-_/\\‏\ufeff]", " ", text)
     return re.sub(r"\s+", " ", text).strip()
 
-_WORKING_EMBED_MODEL = None
+_WORKING_EMBED_MODEL = "models/gemini-embedding-001"
 
 @lru_cache(maxsize=2048)
 def get_query_embedding(cleaned_text: str):
     global _WORKING_EMBED_MODEL
     if not client:
         return None
-    preferred_model = _WORKING_EMBED_MODEL or os.getenv("EMBEDDING_MODEL", "text-embedding-004")
+    preferred_model = _WORKING_EMBED_MODEL or os.getenv("EMBEDDING_MODEL", "models/gemini-embedding-001")
     try:
-        if "gemini-embedding" in preferred_model:
+        if "gemini" in preferred_model:
             res = client.models.embed_content(
                 model=preferred_model,
                 contents=cleaned_text,
@@ -120,74 +127,13 @@ def get_query_embedding(cleaned_text: str):
         _WORKING_EMBED_MODEL = fallback_model
         return tuple(res.embeddings[0].values)
 
-def generate_alignment_insight(query: str, hadith_text: str) -> dict:
-    """
-    توليد تحليل دلالي موضوعي وموجز يربط صياغة الاستعلام المعاصرة بالمتن النبوي الشريف
-    مع التقيد الصارم بالنص القرآني والنبوي ونفي أي ادعاءات فقهية أو إفتائية خارج النص.
-    """
-    if not client:
-        return {
-            "matched_concepts": ["المطابقة الدلالية"],
-            "explanation": "يرتبط المعنى العام للاستعلام بالمتن النبوي المسترجع في هذا الباب دلالياً."
-        }
-
-    prompt = f"""أنت محلل دلالي متخصص في ربط صياغات الاستعلام المعاصرة بمتون الأحاديث النبوية الشريفة.
-قارن بين استعلام المستخدم والمتن النبوي الشريف المسترجع بدقة بالغة وموضوعية تامة.
-
-استعلام المستخدم:
-"{query}"
-
-المتن النبوي المعتمد:
-"{hadith_text}"
-
-المطلوب:
-1. استخرج المفاهيم الجوهرية المشتركة بين الاستعلام والمتن في قائمة مختصرة (matched_concepts).
-2. اكتب شرحاً علمياً وموضوعياً صارماً في جملة أو جملتين فقط يوضح بدقة كيف ترتبط صياغة الاستعلام باللفظ والمعنى النبوي الشريف، مع الالتزام التام بالنص، والامتناع التام عن أي استنتاجات فقهية أو فتاوى أو تأويلات غير منصوصة (explanation).
-
-أعد الناتج بصيغة JSON فقط بهذا الشكل المحدد:
-{{
-  "matched_concepts": ["مفهوم 1", "مفهوم 2"],
-  "explanation": "يرتبط معنى ... الوارد في الاستعلام مباشرة بالأمر/الهدي النبوي في قوله ﷺ: «...»"
-}}"""
-
-    for m in ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash"]:
-        try:
-            cfg = types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.1
-            )
-            res = client.models.generate_content(
-                model=m,
-                contents=prompt,
-                config=cfg
-            )
-            text = res.text.strip()
-            parsed = json.loads(text)
-            if isinstance(parsed, dict) and "explanation" in parsed:
-                concepts = parsed.get("matched_concepts")
-                if not isinstance(concepts, list):
-                    concepts = [str(concepts)] if concepts else []
-                return {
-                    "matched_concepts": [str(c).strip() for c in concepts if c],
-                    "explanation": str(parsed.get("explanation", "")).strip()
-                }
-        except Exception as e:
-            print(f"[!] Warning: Explainability generation with {m} failed: {e}", flush=True)
-
-    return {
-        "matched_concepts": ["المطابقة الدلالية"],
-        "explanation": "يرتبط المعنى العام للاستعلام بالمتن النبوي المسترجع في هذا الباب دلالياً."
-    }
-
 class VerifyRequest(BaseModel):
     query: str | None = None
     text: str | None = None
 
-REFUSAL_MESSAGE = "لم يتم العثور على أصل مطابق في مصادر السنة المعتمدة، ولا يُنسب إلى النبي ﷺ ما لم يثبت إسناده."
-
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "version": "0.3.5"}
+    return {"status": "ok", "version": "0.4.0"}
 
 @app.get("/api/v1/cache/stats")
 def cache_stats():
@@ -210,7 +156,7 @@ def verify_content(payload: VerifyRequest):
         if not cleaned:
             raise HTTPException(status_code=400, detail="Query cannot be empty")
 
-        # Fast In-Memory Arabic-Aware Cache Lookup (< 5ms)
+        # 1. Fast In-Memory Arabic-Aware Cache Lookup (< 5ms)
         cached_result = verification_cache.get(raw_query)
         if cached_result is not None:
             res = dict(cached_result)
@@ -218,6 +164,7 @@ def verify_content(payload: VerifyRequest):
             res["latency_ms"] = round((time.perf_counter() - t0) * 1000, 2)
             return res
 
+        # 2. توليد التضمين الشعاعي للاستعلام
         query_vector = None
         if client:
             try:
@@ -227,138 +174,85 @@ def verify_content(payload: VerifyRequest):
             except Exception as e:
                 print(f"[!] Embedding error: {e}", flush=True)
 
-        conn = db_pool.getconn()
-        try:
-            cursor = conn.cursor()
-            if query_vector:
-                hybrid_query = """
-                WITH fts_results AS (
-                    SELECT id, ROW_NUMBER() OVER (ORDER BY ts_rank_cd(tsv, plainto_tsquery('arabic', %s)) DESC) AS rank
-                    FROM hadiths
-                    WHERE tsv @@ plainto_tsquery('arabic', %s)
-                    LIMIT 5
-                ),
-                vector_results AS (
-                    SELECT id, ROW_NUMBER() OVER (ORDER BY embedding <=> %s::vector) AS rank,
-                           (1 - (embedding <=> %s::vector)) AS similarity
-                    FROM hadiths
-                    WHERE embedding IS NOT NULL
-                    ORDER BY embedding <=> %s::vector
-                    LIMIT 5
-                )
-                SELECT h.hadith_id, h.raw_text, h.source_book, h.chapter, h.hadith_number, h.grade, h.scholar_verdict,
-                       (CASE WHEN f.id IS NOT NULL THEN (1.0 / (60 + f.rank)) ELSE 0.0 END) +
-                       (CASE WHEN v.id IS NOT NULL THEN (1.0 / (60 + v.rank)) ELSE 0.0 END) AS rrf_score,
-                       COALESCE(v.similarity, 0.0) AS semantic_similarity,
-                       (f.id IS NOT NULL) AS text_matched
-                FROM hadiths h
-                LEFT JOIN fts_results f ON h.id = f.id
-                LEFT JOIN vector_results v ON h.id = v.id
-                WHERE f.id IS NOT NULL OR (v.id IS NOT NULL AND v.similarity >= 0.50)
-                ORDER BY rrf_score DESC, semantic_similarity DESC
-                LIMIT 5;
-                """
-                cursor.execute(hybrid_query, (cleaned, cleaned, query_vector, query_vector, query_vector))
-                results = cursor.fetchall()
-            else:
-                fallback_query = """
-                SELECT hadith_id, raw_text, source_book, chapter, hadith_number, grade, scholar_verdict, 
-                       1.0 AS rrf_score, 0.0 AS semantic_similarity, true AS text_matched
-                FROM hadiths
-                WHERE tsv @@ plainto_tsquery('arabic', %s)
-                LIMIT 1;
-                """
-                cursor.execute(fallback_query, (cleaned,))
-                results = cursor.fetchall()
+        # 3. استرجاع الشواهد المرشحة بعتبة threshold = 0.58
+        candidates = retrieve_candidate_hadiths(
+            cleaned_query=cleaned,
+            query_vector=query_vector,
+            db_pool=db_pool,
+            similarity_threshold=0.58,
+            limit=8
+        )
 
-            cursor.close()
-        finally:
-            db_pool.putconn(conn)
+        # 4. التحكيم الدلالي والحديثي متعدد المستويات (Multi-Tier Verification)
+        arb_result = arbitrate_multi_tier(
+            client=client,
+            raw_query=raw_query,
+            cleaned_query=cleaned,
+            candidates=candidates
+        )
 
-        if not results:
-            response_data = {
-                "status": "refused",
-                "message": REFUSAL_MESSAGE,
-                "similarity_score": 0.0,
-                "evidence_card": None,
-                "alignment_insight": None,
-                "cached": False,
-                "latency_ms": round((time.perf_counter() - t0) * 1000, 2)
+        status_flag = arb_result["verification_status"]
+        decision_level = arb_result["decision_level"]
+        confidence_score = arb_result["confidence_score"]
+
+        # بناء بطاقة الشاهد المعتمدة (Evidence Card) إن لم تكن الحالة امتناعاً
+        evidence_card = None
+        if status_flag != "ABSTAIN" and candidates:
+            anchor_id = arb_result.get("anchor_hadith_id")
+            chosen = next((c for c in candidates if c.get("hadith_id") == anchor_id), candidates[0])
+            evidence_card = {
+                "hadith_id": chosen.get("hadith_id"),
+                "text": chosen.get("raw_text"),
+                "source_book": chosen.get("source_book"),
+                "source": chosen.get("source_book"),
+                "chapter": chosen.get("chapter"),
+                "number": chosen.get("hadith_number"),
+                "hadith_number": chosen.get("hadith_number"),
+                "grade": chosen.get("grade"),
+                "verdict": chosen.get("scholar_verdict"),
+                "scholar_verdict": chosen.get("scholar_verdict"),
+                "semantic_similarity": chosen.get("semantic_similarity", confidence_score)
             }
-            verification_cache.set(raw_query, response_data)
-            return response_data
 
-        top1 = results[0]
-        sim1 = float(top1.get("semantic_similarity", 0.0))
-        is_text = top1.get("text_matched", False)
-
-        clean_top1 = clean_text(top1["raw_text"])
-        sim2 = 0.0
-        for r in results[1:]:
-            if clean_text(r["raw_text"]) != clean_top1:
-                sim2 = float(r.get("semantic_similarity", 0.0))
-                break
-        margin = sim1 - sim2
-
-        known_unverified = ["الصين", "المعده بيت الداء", "حب الوطن", "خير البر عاجله", "اختلاف امتي", "لا ناكل حتي نجوع"]
-        is_known_false = any(kw in cleaned for kw in known_unverified)
-
-        is_verified = False
-        if not is_known_false:
-            if is_text and (query_vector is None or sim1 >= 0.50):
-                is_verified = True
-            elif sim1 >= 0.70:
-                is_verified = True
-            elif sim1 >= 0.635 and margin >= 0.005:
-                is_verified = True
-
-        if not is_verified:
-            response_data = {
-                "status": "refused",
-                "message": REFUSAL_MESSAGE,
-                "similarity_score": round(sim1, 4),
-                "evidence_card": None,
-                "alignment_insight": None,
-                "cached": False,
-                "latency_ms": round((time.perf_counter() - t0) * 1000, 2)
+        alignment_insight = None
+        if status_flag != "ABSTAIN":
+            alignment_insight = {
+                "matched_concepts": arb_result.get("matched_concepts", ["المطابقة الدلالية"]),
+                "explanation": arb_result.get("rationale", "")
             }
-            verification_cache.set(raw_query, response_data)
-            return response_data
 
-        # فحص ما إذا كان الاستعلام تطابقاً لفظياً مباشراً (Exact Lexical Match)
-        clean_q = cleaned
-        clean_matn = clean_top1
-        q_tokens = set(clean_q.split())
-        matn_tokens = set(clean_matn.split())
-        token_overlap = (len(q_tokens & matn_tokens) / len(q_tokens)) if q_tokens else 0.0
-
-        is_exact_lexical = (clean_q in clean_matn) or (clean_matn in clean_q) or (token_overlap >= 0.85)
-
-        if is_exact_lexical:
-            alignment_insight = "تطابق لفظي مباشر مع متن الحديث المعتمد في الباب."
+        # تحديد رسالة الحالة
+        if status_flag == "EXACT_MATCH":
+            message = "ثابت ومطابق بلفظه في الصحيحين"
+            engine_status = "verified"
+        elif status_flag == "SEMANTIC_APPROVED":
+            message = "المعنى صحيح ومستفاد من حديث معتمد (صياغة بالمعنى)"
+            engine_status = "verified"
         else:
-            alignment_insight = generate_alignment_insight(raw_query, top1["raw_text"])
+            message = REFUSAL_MESSAGE
+            engine_status = "refused"
 
         response_data = {
-            "status": "verified",
-            "message": "تم التحقق من المتن بنجاح عبر البحث الهجين",
-            "similarity_score": round(sim1, 4),
-            "evidence_card": {
-                "hadith_id": top1["hadith_id"],
-                "text": top1["raw_text"],
-                "source": top1["source_book"],
-                "chapter": top1["chapter"],
-                "number": top1["hadith_number"],
-                "grade": top1["grade"],
-                "verdict": top1["scholar_verdict"],
-                "semantic_similarity": round(sim1, 4)
-            },
+            "verification_status": status_flag,
+            "decision_level": decision_level,
+            "confidence_score": confidence_score,
+            "similarity_score": confidence_score,
+            "semantic_anchor": arb_result.get("semantic_anchor", ""),
+            "anchor_hadith_id": arb_result.get("anchor_hadith_id"),
+            "rationale": arb_result.get("rationale", ""),
+            "guidance": arb_result.get("guidance", ""),
+            "status": engine_status,
+            "message": message,
+            "evidence_card": evidence_card,
             "alignment_insight": alignment_insight,
             "cached": False,
             "latency_ms": round((time.perf_counter() - t0) * 1000, 2)
         }
+
+        # تخزين النتيجة في الكاش السريع
         verification_cache.set(raw_query, response_data)
         return response_data
+
     except HTTPException:
         raise
     except Exception as exc:

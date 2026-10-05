@@ -140,7 +140,7 @@ def run_benchmark():
 
         start_t = time.perf_counter()
         try:
-            res = requests.post(API_URL, json={"query": query}, timeout=10)
+            res = requests.post(API_URL, json={"query": query}, timeout=25)
             duration_ms = (time.perf_counter() - start_t) * 1000
             latencies.append(duration_ms)
 

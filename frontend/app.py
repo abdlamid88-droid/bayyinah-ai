@@ -82,9 +82,9 @@ st.markdown("""
         border: 1.5px solid #22c55e;
     }
     .badge-level-2 {
-        background-color: #ffedd5;
-        color: #9a3412;
-        border: 1.5px solid #f97316;
+        background-color: #fef9c3;
+        color: #854d0e;
+        border: 1.5px solid #eab308;
     }
     .badge-level-3 {
         background-color: #fee2e2;
@@ -107,10 +107,10 @@ st.markdown("""
         color: #166534;
     }
     .rationale-l2 {
-        background-color: #fffbeb;
-        border: 1px solid #fde68a;
-        border-right: 5px solid #d97706;
-        color: #92400e;
+        background-color: #fefce8;
+        border: 1px solid #fef08a;
+        border-right: 5px solid #ca8a04;
+        color: #854d0e;
     }
     .rationale-l3 {
         background-color: #fff1f2;
@@ -121,13 +121,13 @@ st.markdown("""
 
     /* تنبيه احترازي لتباين الألفاظ للمستوى الثاني */
     .level2-alert-box {
-        background-color: #fff7ed;
-        border: 1px solid #fed7aa;
-        border-right: 5px solid #ea580c;
+        background-color: #fef9c3;
+        border: 1px solid #fef08a;
+        border-right: 5px solid #eab308;
         border-radius: 8px;
         padding: 0.9rem 1.2rem;
         margin: 0.8rem 0;
-        color: #9a3412;
+        color: #713f12;
         font-size: 0.92rem;
         line-height: 1.8;
     }
@@ -165,9 +165,9 @@ st.markdown("""
         box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
     .verify-box-matn-l2 {
-        background: #fffbeb;
-        border: 1px solid #fde68a;
-        border-top: 4px solid #d97706;
+        background: #fefce8;
+        border: 1px solid #fef08a;
+        border-top: 4px solid #eab308;
         border-radius: 8px;
         padding: 1rem 1.2rem;
         min-height: 135px;
@@ -271,13 +271,13 @@ with st.sidebar:
     """)
     st.divider()
     st.markdown("""
-    **🏷️ مستويات اتخاذ القرار (Decision Badges):**
-    - 🟢 **المستوى الأول (≥ 85%):** معتمد وصالح للنشر.
-    - 🟠 **المستوى الثاني (60% - 84%):** محتوى مقارب يتطلب مراجعة وتثبت بشري.
-    - 🔴 **المستوى الثالث (< 60%):** غير ثابت بالأصول المعتمدة (Smart Abstention).
+    **🏷️ منظومة التصنيف الدلالية ثلاثية الأبعاد (3-Tier Verification):**
+    - 🟢 **المستوى الأول (≥ 85%):** ثابت ومطابق بلفظه في الصحيحين.
+    - 🟡 **المستوى الثاني (60% - 84%):** المعنى صحيح ومستفاد من حديث معتمد (صياغة بالمعنى).
+    - 🔴 **المستوى الثالث (< 60%):** غير ثابت بالأصول المعتمدة (الامتناع الذكي).
     """)
     st.divider()
-    st.caption(f"إصدار المحرك: `v0.3.5-scientific`\n\nنقطة الخدمة: `{API_URL}`")
+    st.caption(f"إصدار المحرك: `v0.4.0-scientific`\n\nنقطة الخدمة: `{API_URL}`")
 
 # تهيئة حالة الجلسة (Session State Management)
 if "query_input" not in st.session_state:
@@ -298,7 +298,7 @@ with p_col1:
         st.rerun()
 
 with p_col2:
-    if st.button("🟠 فهم دلالي معاصر", use_container_width=True, help="المستوى 2: فحص صياغة معاصرة ومحتوى مقارب يتطلب مراجعة وتثبت بشري (ثقة 60%-84%)"):
+    if st.button("🟡 موافقة دلالية وموضوعية", use_container_width=True, help="المستوى 2: المعنى صحيح ومستفاد من حديث معتمد - صياغة بالمعنى وليست نصاً مرفوعاً بلفظه (ثقة 60%-84%)"):
         st.session_state["query_input"] = "كف الأذى واللسان عن الآخرين علامة صدق الإيمان"
         st.session_state["trigger_verify"] = True
         st.rerun()
@@ -369,33 +369,45 @@ if should_run:
                         raw_sim = 0.0
                     confidence = float(raw_sim) * 100 if float(raw_sim) <= 1.0 else float(raw_sim)
 
-                    # تصنيف النتيجة إلى 3 مستويات واضحة لصانع القرار (Decision Badges)
-                    if status == "verified" and card:
-                        if confidence >= 85.0:
-                            decision_level = 1
-                        elif confidence >= 60.0:
-                            decision_level = 2
+                    # استخراج قرار المنظومة ثلاثية الأبعاد (3-Tier Verification Architecture)
+                    backend_v_status = data.get("verification_status")
+                    backend_level = data.get("decision_level")
+
+                    if backend_level in [1, 2, 3]:
+                        decision_level = backend_level
+                    elif backend_v_status == "EXACT_MATCH":
+                        decision_level = 1
+                    elif backend_v_status == "SEMANTIC_APPROVED":
+                        decision_level = 2
+                    elif backend_v_status == "ABSTAIN":
+                        decision_level = 3
+                    else:
+                        if status == "verified" and card:
+                            if confidence >= 85.0:
+                                decision_level = 1
+                            elif confidence >= 60.0:
+                                decision_level = 2
+                            else:
+                                decision_level = 3
                         else:
                             decision_level = 3
-                    else:
-                        decision_level = 3
 
                     st.markdown("<div style='margin-top: 16px;'></div>", unsafe_allow_html=True)
                     col1, col2 = st.columns([1.35, 0.65])
                     with col1:
                         if decision_level == 1:
                             st.markdown(
-                                f'<span class="decision-badge badge-level-1">🟢 <b>معتمد وصالح للنشر</b> (المستوى الأول - ثقة {confidence:.1f}%)</span>',
+                                f'<span class="decision-badge badge-level-1">🟢 <b>ثابت ومطابق بلفظه في الصحيحين</b> (المستوى الأول - ثقة {confidence:.1f}%)</span>',
                                 unsafe_allow_html=True
                             )
                         elif decision_level == 2:
                             st.markdown(
-                                f'<span class="decision-badge badge-level-2">🟠 <b>محتوى مقارب - يتطلب مراجعة وتثبت بشري</b> (المستوى الثاني - ثقة {confidence:.1f}%)</span>',
+                                f'<span class="decision-badge badge-level-2">🟡 <b>المعنى صحيح ومستفاد من حديث معتمد (صياغة بالمعنى)</b> (المستوى الثاني - توافق دلالي {confidence:.1f}%)</span>',
                                 unsafe_allow_html=True
                             )
                         else:
                             st.markdown(
-                                '<span class="decision-badge badge-level-3">🔴 <b>غير ثابت بالأصول المعتمدة (Smart Abstention)</b> (المستوى الثالث)</span>',
+                                '<span class="decision-badge badge-level-3">🔴 <b>غير ثابت بالأصول المعتمدة (الامتناع الذكي)</b> (المستوى الثالث)</span>',
                                 unsafe_allow_html=True
                             )
 
@@ -416,12 +428,17 @@ if should_run:
                             )
 
                     # توضيح مبرر القرار (Human-Readable Rationale) والتنبيهات الإجرائية
+                    rationale_text = data.get("rationale")
+                    guidance_text = data.get("guidance")
+
                     if decision_level == 1:
+                        default_rat_l1 = f"تطابق إسنادي ولفظي وثيق بنسبة ثقة عالية ({confidence:.1f}% &ge; 85%)، والمتن ثابت ومسند بالأصول المعتمدة في الصحيحين."
+                        default_gui_l1 = "النص معتمد وصالح للنشر والاستشهاد الفوري؛ ويُوصى بإرفاق التخريج الموثق المبيّن في بطاقة الإسناد أدناه (الكتاب، والباب، ورقم الحديث، وحكم المحدثين)."
                         st.markdown(
                             f"""
                             <div class="rationale-card rationale-l1">
-                                <div><b>💡 مبرر القرار (Rationale):</b> تطابق إسنادي ولفظي وثيق بنسبة ثقة عالية ({confidence:.1f}% &ge; 85%)، والمتن ثابت ومسند بالأصول المعتمدة في الصحيحين.</div>
-                                <div style="margin-top: 5px;"><b>📋 الإجراء العملي المقترح قبل النشر:</b> النص معتمد وصالح للنشر والاستشهاد الفوري؛ ويُوصى بإرفاق التخريج الموثق المبيّن في بطاقة الإسناد أدناه (الكتاب، والباب، ورقم الحديث، وحكم المحدثين).</div>
+                                <div><b>💡 مبرر القرار (Rationale):</b> {rationale_text or default_rat_l1}</div>
+                                <div style="margin-top: 5px;"><b>📋 الإجراء العملي المقترح قبل النشر:</b> {guidance_text or default_gui_l1}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -430,16 +447,18 @@ if should_run:
                         st.markdown(
                             """
                             <div class="level2-alert-box">
-                                ⚠️ <b>تنبيه احترازي:</b> يوجد تباين في الألفاظ أو تعدد في الروايات لا يحسمه التوليد الآلي؛ ويتعين التثبت البشري ومقارنة النص بكتب السنة المعتمدة قبل اعتماده.
+                                ⚠️ <b>تنبيه لفظي:</b> العبارة المُدخلة صياغة بالمعنى وليست نصاً نبوياً مرفوعاً بلفظه.
                             </div>
                             """,
                             unsafe_allow_html=True
                         )
+                        default_rat_l2 = f"المعنى صحيح ومستفاد ومؤصل من حديث معتمد بتوافق دلالي ({confidence:.1f}%)، مع اختلاف صياغة المستعلم عن اللفظ المرفوع."
+                        default_gui_l2 = "الاستفادة من المعنى صحيحة ومأذونة مع حفظ اللفظ والتنبيه على أنه صياغة بالمعنى؛ وعند العزو يُنصح بإيراد المتن النبوي الشريف المعتمد وتخريجه الموثق."
                         st.markdown(
                             f"""
                             <div class="rationale-card rationale-l2">
-                                <div><b>💡 مبرر القرار (Rationale):</b> تقع درجة الثقة في النطاق الحرج ({confidence:.1f}% بين 60% و 84%) لوجود تقارب دلالي مع المعنى الأصلي مع تباين في بعض الألفاظ أو احتمال تعدد الروايات في الباب.</div>
-                                <div style="margin-top: 5px;"><b>📋 الإجراء العملي المقترح قبل النشر:</b> عدم الاكتفاء بالمعالجة الآلية وحدها؛ يتعين إحالة المتن لمراجع أو باحث متخصص للتثبت من اللفظ الوارد في الرواية المعتمدة ومطابقة الألفاظ بالأصول المسندة قبل النشر.</div>
+                                <div><b>💡 مبرر التوافق الدلالي (Rationale):</b> {rationale_text or default_rat_l2}</div>
+                                <div style="margin-top: 5px;"><b>📋 الشاهد الدلالي الأقرب والتوجيه العملي:</b> {guidance_text or default_gui_l2}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -456,11 +475,13 @@ if should_run:
                             """,
                             unsafe_allow_html=True
                         )
+                        default_rat_l3 = f"مؤشر الثقة دون حد الأمان العلمي ({confidence:.1f}% &lt; 60%)، مع انعدام أي سند صحيح مطابق في صحيحي البخاري ومسلم أو كتب السنة المعتمدة، أو لكون النص مقولة موضوعة لا أصل لها."
+                        default_gui_l3 = "الامتناع الصارم والتام عن نشر هذا النص أو نسبته إلى النبي ﷺ، والتحذير من تداوله كحديث نبوي شريف لعدم ثبوت سنده."
                         st.markdown(
                             f"""
                             <div class="rationale-card rationale-l3">
-                                <div><b>💡 مبرر القرار (Rationale):</b> مؤشر الثقة دون حد الأمان العلمي ({confidence:.1f}% &lt; 60%)، مع انعدام أي سند صحيح مطابق في صحيحي البخاري ومسلم أو كتب السنة المعتمدة، أو لكون النص مقولة موضوعة لا أصل لها.</div>
-                                <div style="margin-top: 5px;"><b>📋 الإجراء العملي المقترح قبل النشر:</b> الامتناع الصارم والتام عن نشر هذا النص أو نسبته إلى النبي ﷺ، والتحذير من تداوله كحديث نبوي شريف لعدم ثبوت سنده.</div>
+                                <div><b>💡 مبرر القرار (Rationale):</b> {rationale_text or default_rat_l3}</div>
+                                <div style="margin-top: 5px;"><b>📋 الإجراء العملي المقترح قبل النشر:</b> {guidance_text or default_gui_l3}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -497,11 +518,14 @@ if should_run:
                             )
                         elif decision_level == 2:
                             matn_text = card.get("text", "") if card else ""
+                            src_bk = card.get("source_book") or card.get("source", "صحيح البخاري") if card else "صحيح البخاري"
+                            h_num = card.get("hadith_number") or card.get("number", "") if card else ""
+                            cite_label = f" ({src_bk}: {h_num})" if h_num else f" ({src_bk})"
                             st.markdown(
                                 f"""
                                 <div class="verify-box-matn-l2">
-                                    <div style="font-weight: 700; color: #c2410c; font-size: 0.95rem; margin-bottom: 8px;">📖 المتن المعتمد المقارب في الصحيح (للمقارنة والتثبت):</div>
-                                    <div style="font-family: 'Amiri', serif; font-size: 1.2rem; color: #7c2d12; line-height: 2.0; font-weight: 700;">« {matn_text} »</div>
+                                    <div style="font-weight: 700; color: #854d0e; font-size: 0.95rem; margin-bottom: 8px;">📖 الشاهد الدلالي الأقرب المطابق للمعنى{cite_label}:</div>
+                                    <div style="font-family: 'Amiri', serif; font-size: 1.25rem; color: #713f12; line-height: 2.1; font-weight: 700;">« {matn_text} »</div>
                                 </div>
                                 """,
                                 unsafe_allow_html=True
@@ -523,7 +547,7 @@ if should_run:
                         if decision_level == 1:
                             st.subheader("📋 بطاقة الإسناد المعتمدة (Evidence Card)")
                         else:
-                            st.subheader("📋 بيانات الشاهد الإسنادي المقارب (Evidence Card)")
+                            st.subheader("📋 الشاهد الدلالي الأقرب المعتمد (Nearest Semantic Anchor)")
 
                         evidence = card
                         source_book = evidence.get("source_book") or evidence.get("source", "الأصول المسندة")
@@ -557,8 +581,8 @@ if should_run:
             <div style="font-size: 0.95rem; font-weight: bold; color: #1e293b;">{hadith_num}</div>
         </div>
         <div style="background: #f1f5f9; padding: 10px 14px; border-radius: 8px; min-width: 120px; text-align: center;">
-            <div style="font-size: 0.8rem; color: #64748b;">درجة الثقة / المطابقة</div>
-            <div style="font-size: 0.95rem; font-weight: bold; color: {'#166534' if decision_level == 1 else '#c2410c'};">{confidence:.1f}%</div>
+            <div style="font-size: 0.8rem; color: #64748b;">{'درجة المطابقة اللفظية' if decision_level == 1 else 'مؤشر التوافق الدلالي'}</div>
+            <div style="font-size: 0.95rem; font-weight: bold; color: {'#166534' if decision_level == 1 else '#854d0e'};">{confidence:.1f}%</div>
         </div>
         <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px 14px; border-radius: 8px; min-width: 120px; text-align: center;">
             <div style="font-size: 0.8rem; color: #065f46;">حكم المحدثين</div>
@@ -597,9 +621,9 @@ if should_run:
 
                         alignment = data.get("alignment_insight", {})
 
-                        level_title = "المستوى الأول: معتمد وصالح للنشر" if decision_level == 1 else "المستوى الثاني: محتوى مقارب - يتطلب مراجعة وتثبت بشري"
-                        rationale_note = "تطابق إسنادي ولفظي وثيق (ثقة ≥ 85%) في الأصول المسندة المعتمدة." if decision_level == 1 else "تقارب دلالي مع الأصل النبوي (60%-84%) مع وجود تباين لفظي يستوجب التثبت البشري ومطابقة الروايات."
-                        action_note = "معتمد ومجاز للنشر والاستشهاد الفوري مع التخريج الموثق." if decision_level == 1 else "مراجعة وتثبت بشري متخصص لمطابقة الألفاظ بالأصول قبل النشر وعدم الاكتفاء بالتوليد الآلي."
+                        level_title = "المستوى الأول: ثابت ومطابق بلفظه في الصحيحين" if decision_level == 1 else "المستوى الثاني: المعنى صحيح ومستفاد من حديث معتمد (صياغة بالمعنى)"
+                        rationale_note = "تطابق إسنادي ولفظي وثيق (ثقة ≥ 85%) في الأصول المسندة المعتمدة." if decision_level == 1 else "المعنى صحيح ومستفاد من حديث معتمد في الصحيحين؛ والعبارة صياغة بالمعنى وليست نصاً نبوياً مرفوعاً بلفظه."
+                        action_note = "معتمد ومجاز للنشر والاستشهاد الفوري مع التخريج الموثق." if decision_level == 1 else "الاستفادة من المعنى صحيحة ومأذونة مع التنبيه على أنه صياغة بالمعنى؛ وإيراد لفظ الحديث النبوي المعتمد عند العزو والاستدلال."
 
                         # Format Plain Text Certificate
                         export_text = f"""==================================================
@@ -644,9 +668,9 @@ if should_run:
                             )
 
                         with col_exp2:
-                            badge_color = "#16a34a" if decision_level == 1 else "#d97706"
-                            badge_bg = "#dcfce7" if decision_level == 1 else "#ffedd5"
-                            badge_txt = "#166534" if decision_level == 1 else "#9a3412"
+                            badge_color = "#16a34a" if decision_level == 1 else "#eab308"
+                            badge_bg = "#dcfce7" if decision_level == 1 else "#fef9c3"
+                            badge_txt = "#166534" if decision_level == 1 else "#854d0e"
 
                             html_card = f"""<!DOCTYPE html>
 <html dir="rtl" lang="ar">
